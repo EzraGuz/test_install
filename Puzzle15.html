@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style></style>
+    <script>
+        const x = 3;  // Ancho del tablero
+        const y = 3;  // Alto del tablero
+        const n = x * y;  // Número total de celdas
+        const mov = [-x, -1, +1, +x];  // Movimientos posibles (arriba, izquierda, derecha, abajo)
+        const end = Array.from({length: n - 1}, (_, i) => i + 1).join(",") + ",0";  // Estado final
+
+        // Usamos conjuntos (Set) para optimizar la búsqueda
+        let t_0 = new Set();
+        let t_1 = new Set([end]);
+        let t_2 = new Set();
+
+        // Función para imprimir el tablero
+        function printTablero(tablero) {
+            console.log("[");
+            for (let i = 0; i < y; i++) {
+                console.log(tablero.slice(i * x, (i + 1) * x));
+            }
+            console.log("]");
+        }
+
+        // Función para intercambiar posiciones
+        function intercambiar(tablero, p, p1) {
+            const nuevoTablero = tablero.slice();
+            [nuevoTablero[p], nuevoTablero[p1]] = [nuevoTablero[p1], nuevoTablero[p]];
+            return nuevoTablero.join(",");
+        }
+
+        // Función para mover las piezas en el tablero
+        function mover(tableroInicialStr) {
+            const tableroInicial = tableroInicialStr.split(",");
+            const p = tableroInicial.indexOf("0");  // Posición del espacio vacío
+            
+            for (let i = 0; i < mov.length; i++) {
+                const nuevaPos = p + mov[i];
+                if (0 <= nuevaPos && nuevaPos < n && (Math.abs(mov[i]) === x || (Math.abs(mov[i]) === 1 && Math.trunc(nuevaPos / x) === Math.trunc(p / x)))) {
+                    const nuevoTableroStr = intercambiar(tableroInicial, p, nuevaPos);
+                    // Usamos conjuntos para mejorar la eficiencia en la búsqueda
+                    if (!t_0.has(nuevoTableroStr) && !t_2.has(nuevoTableroStr)) {
+                        t_2.add(nuevoTableroStr);
+                    }
+                }
+            }
+        }
+
+        // Imprimir el tablero inicial
+        printTablero(end.split(","));
+
+        const inicio0 = Date.now();
+        let iteracion = 0;
+
+        while (t_1.size > 0) {
+            const inicioIteracion = Date.now();
+
+            // Iterar sobre t_1
+            for (const tablero of t_1) {
+                mover(tablero);
+            }
+
+            console.log(`Iteración ${iteracion++} ${(new Date()).toLocaleTimeString()} < ${t_0.size} , ${t_1.size} , ${t_2.size} > ${(Date.now() - inicioIteracion) / 1000} seg`);
+
+            // Actualizar los estados
+            t_0 = new Set(t_1);  // Copiamos el estado actual
+            t_1 = new Set(t_2);  // Movemos t_2 a t_1
+            t_2.clear();  // Limpiamos t_2 para la siguiente iteración
+        }
+
+        console.log(`${(Date.now() - inicio0) / 1000} seg`);
+    </script>
+</head>
+</html>
